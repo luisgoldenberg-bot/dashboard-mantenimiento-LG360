@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LG360 · Gestión de Mantenimiento — Flota</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0E1A;
+  --bg2:#0F1624;
+  --bg3:#131D2E;
+  --bg4:#1C2A42;
+  --line:#1F2F4A;
+  --line2:#2A3F5F;
+  --cyan:#00E5FF;
+  --cyan2:#00B8D4;
+  --cyan3:#0288A8;
+  --cyan-glow:rgba(0,229,255,0.15);
+  --text:#E6EEF8;
+  --text2:#A3B3C9;
+  --text3:#6B7D96;
+  --green:#36FFB0;
+  --amber:#F7B63E;
+  --orange:#FF8C42;
+  --red:#FF4D6D;
+  --shadow:0 6px 18px rgba(0,0,0,0.4);
+  --shadow-glow:0 0 24px rgba(0,229,255,0.08);
+  --radius:10px;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --display:'Rajdhani',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--display);
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(circle at 15% 20%,rgba(0,229,255,0.04) 0%,transparent 40%),
+    radial-gradient(circle at 85% 80%,rgba(0,184,212,0.03) 0%,transparent 45%);
+  background-attachment:fixed;
+}
+
+/* ══════════ TOPBAR ══════════ */
+.topbar{
+  background:linear-gradient(180deg,rgba(15,22,36,0.98) 0%,rgba(10,14,26,0.95) 100%);
+  backdrop-filter:blur(12px);
+  padding:14px 28px;
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--line2);
+  box-shadow:var(--shadow);
+  position:sticky;top:0;z-index:1000;
+}
+.topbar::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:linear-gradient(90deg,transparent 0%,var(--cyan) 50%,transparent 100%);
+  opacity:0.6;
+}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-logo{
+  width:42px;height:42px;border-radius:8px;
+  background:linear-gradient(135deg,var(--cyan) 0%,var(--cyan3) 100%);
+  display:grid;place-items:center;color:#000;font-weight:700;font-size:20px;
+  box-shadow:0 0 16px var(--cyan-glow);
+}
+.brand-text{display:flex;flex-direction:column}
+.brand-name{font-size:20px;font-weight:700;color:var(--cyan);letter-spacing:2px;line-height:1}
+.brand-sub{font-size:10px;color:var(--text3);letter-spacing:2.5px;margin-top:4px;text-transform:uppercase}
+.page-title{
+  font-size:22px;font-weight:600;color:var(--text);letter-spacing:3px;
+  text-transform:uppercase;
+}
+.topbar-right{display:flex;align-items:center;gap:18px}
+.status-online{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px;border:1px solid rgba(54,255,176,0.3);
+  border-radius:20px;background:rgba(54,255,176,0.06);
+  font-size:11px;font-weight:600;color:var(--green);letter-spacing:1.5px;
+}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.clock{font-family:var(--mono);font-size:13px;color:var(--text2);font-weight:500}
+
+/* ══════════ UPLOAD BAR ══════════ */
+.upload-bar{
+  padding:16px 28px;display:flex;align-items:center;gap:18px;
+  background:var(--bg2);border-bottom:1px solid var(--line);
+}
+.upload-icon{
+  width:38px;height:38px;border-radius:8px;
+  background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);
+  display:grid;place-items:center;cursor:pointer;transition:all 0.2s;
+  color:var(--cyan);
+}
+.upload-icon:hover{background:rgba(0,229,255,0.15);transform:translateY(-2px)}
+.upload-info{flex:1}
+.upload-title{font-size:13px;font-weight:600;color:var(--cyan2);letter-spacing:1px}
+.upload-desc{font-size:12px;color:var(--text3);margin-top:2px}
+.upload-hint{font-size:11px;color:var(--cyan3);font-style:italic}
+#file-in{display:none}
+
+/* ══════════ TABS ══════════ */
+.tabs{
+  display:flex;gap:4px;padding:0 28px;
+  background:var(--bg2);border-bottom:1px solid var(--line);
+}
+.tab-btn{
+  background:transparent;color:var(--text3);border:none;
+  padding:14px 22px;font-family:var(--display);
+  font-size:13px;font-weight:600;cursor:pointer;
+  letter-spacing:1.5px;text-transform:uppercase;
+  border-bottom:2px solid transparent;
+  transition:all 0.25s;display:flex;align-items:center;gap:8px;
+}
+.tab-btn:hover{color:var(--cyan2)}
+.tab-btn.active{color:var(--cyan);border-bottom-color:var(--cyan);background:rgba(0,229,255,0.04)}
+.tab-btn .ico{font-size:15px}
+
+.tab-content{display:none;padding:24px 28px;animation:fadeIn 0.3s ease}
+.tab-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══════════ FILTROS ══════════ */
+.filters{
+  background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;
+  display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;
+}
+.filter-group{display:flex;flex-direction:column;gap:6px;min-width:160px}
+.filter-label{
+  font-size:10px;color:var(--text3);font-weight:600;
+  letter-spacing:1.5px;text-transform:uppercase;
+}
+.filter-input,.filter-select{
+  background:var(--bg3);border:1px solid var(--line2);color:var(--text);
+  padding:9px 12px;border-radius:6px;font-size:13px;font-family:var(--display);
+  transition:all 0.2s;outline:none;
+}
+.filter-input:focus,.filter-select:focus{
+  border-color:var(--cyan);box-shadow:0 0 0 3px var(--cyan-glow);
+}
+.filter-input::-webkit-calendar-picker-indicator{filter:invert(1) opacity(0.6)}
+
+.btn{
+  border:none;border-radius:6px;padding:9px 18px;font-weight:600;
+  cursor:pointer;font-size:12px;font-family:var(--display);
+  letter-spacing:1px;text-transform:uppercase;transition:all 0.2s;
+}
+.btn-primary{background:var(--cyan);color:#000}
+.btn-primary:hover{background:var(--cyan2);transform:translateY(-1px);box-shadow:0 4px 12px var(--cyan-glow)}
+.btn-secondary{background:var(--bg4);color:var(--text2);border:1px solid var(--line2)}
+.btn-secondary:hover{background:var(--line2);color:var(--text)}
+
+/* ══════════ KPIs ══════════ */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;margin-bottom:22px;
+}
+.kpi{
+  background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--radius);padding:18px 20px;
+  position:relative;overflow:hidden;
+  transition:all 0.2s;
+}
+.kpi:hover{border-color:var(--line2);transform:translateY(-2px);box-shadow:var(--shadow-glow)}
+.kpi::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--cyan),transparent);opacity:0.6;
+}
+.kpi-tag{
+  position:absolute;top:14px;right:16px;
+  font-family:var(--mono);font-size:9px;color:var(--cyan3);
+  letter-spacing:1.5px;opacity:0.7;
+}
+.kpi-lbl{
+  font-size:11px;color:var(--text3);letter-spacing:1.5px;
+  text-transform:uppercase;font-weight:600;margin-bottom:10px;
+}
+.kpi-val{
+  font-family:var(--mono);font-size:36px;font-weight:700;
+  color:var(--cyan);line-height:1;letter-spacing:-1px;
+}
+.kpi-val.ok{color:var(--green)}
+.kpi-val.warn{color:var(--amber)}
+.kpi-val.crit{color:var(--red)}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:6px}
+
+/* ══════════ PANELES ══════════ */
+.panel{
+  background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden;
+}
+.panel-hdr{
+  padding:14px 18px;display:flex;justify-content:space-between;align-items:center;
+  background:linear-gradient(90deg,rgba(0,229,255,0.04) 0%,transparent 100%);
+  border-bottom:1px solid var(--line);
+}
+.panel-title{font-size:13px;font-weight:700;color:var(--cyan2);letter-spacing:1.5px;text-transform:uppercase}
+.panel-tag{
+  font-family:var(--mono);font-size:10px;color:var(--text3);
+  padding:3px 10px;border:1px solid var(--line2);border-radius:12px;
+  letter-spacing:1px;text-transform:uppercase;
+}
+.panel-body{padding:16px 18px}
+
+.grid-3{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:16px;margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+@media (max-width:1100px){.grid-3,.grid-2{grid-template-columns:1fr}}
+
+.chart-wrap{position:relative;width:100%}
+
+/* ══════════ ALERTAS ══════════ */
+.alert-item{
+  display:flex;align-items:center;gap:10px;padding:11px 14px;
+  background:var(--bg3);border-radius:6px;margin-bottom:8px;
+  border-left:3px solid var(--amber);font-size:13px;
+  transition:transform 0.2s;
+  position:relative;overflow:hidden;
+}
+.alert-item::before{
+  content:'';
+  position:absolute;
+  top:0;left:-100%;
+  width:100%;height:100%;
+  background:linear-gradient(90deg, 
+    transparent 0%,
+    rgba(0,229,255,0.15) 50%,
+    transparent 100%
+  );
+  animation:shimmer 3s infinite;
+}
+@keyframes shimmer{
+  0%{left:-100%}
+  50%{left:100%}
+  100%{left:100%}
+}
+.alert-item.crit::before{
+  background:linear-gradient(90deg, 
+    transparent 0%,
+    rgba(255,77,109,0.2) 50%,
+    transparent 100%
+  );
+  animation:shimmer 2s infinite;
+}
+.alert-item.ok::before{
+  background:linear-gradient(90deg, 
+    transparent 0%,
+    rgba(54,255,176,0.15) 50%,
+    transparent 100%
+  );
+  animation:shimmer 4s infinite;
+}
+.alert-item:hover{transform:translateX(4px)}
+.alert-item.crit{border-left-color:var(--red)}
+.alert-item.ok{border-left-color:var(--green)}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0}
+.alert-item.crit .alert-dot{background:var(--red)}
+.alert-item.ok .alert-dot{background:var(--green)}
+.alert-text{flex:1;color:var(--text2)}
+.alert-arrow{color:var(--text3);font-size:12px}
+
+/* ══════════ SISTEMA BARS ══════════ */
+.sys-row{
+  display:grid;grid-template-columns:110px 1fr 60px 50px;
+  gap:10px;align-items:center;padding:8px 0;font-size:12px;
+}
+.sys-name{color:var(--text2);font-weight:500}
+.sys-bar-wrap{height:6px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.sys-bar{height:100%;border-radius:4px;transition:width 0.5s}
+.sys-hrs{text-align:right;font-family:var(--mono);font-size:11px;color:var(--text3)}
+.sys-pct{text-align:right;font-family:var(--mono);font-size:11px;font-weight:700}
+
+/* ══════════ TABLAS ══════════ */
+.table-wrap{overflow-x:auto;max-height:560px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{position:sticky;top:0;z-index:5;background:var(--bg3)}
+thead th{
+  padding:12px 14px;text-align:left;font-size:11px;font-weight:700;
+  color:var(--cyan2);text-transform:uppercase;letter-spacing:1.2px;
+  border-bottom:2px solid var(--line2);white-space:nowrap;
+}
+tbody td{
+  padding:11px 14px;border-bottom:1px solid var(--line);color:var(--text2);
+}
+tbody tr{transition:background 0.15s}
+tbody tr:hover{background:rgba(0,229,255,0.03)}
+.text-c{text-align:center}
+.text-r{text-align:right}
+.mono{font-family:var(--mono)}
+.eq-cell{font-family:var(--mono);font-weight:700;color:var(--cyan);letter-spacing:0.5px}
+
+/* ══════════ BADGES ══════════ */
+.badge{
+  display:inline-block;padding:3px 10px;border-radius:12px;
+  font-size:10px;font-weight:700;font-family:var(--mono);
+  letter-spacing:1px;text-transform:uppercase;
+}
+.badge.ok{background:rgba(54,255,176,0.14);color:var(--green);border:1px solid rgba(54,255,176,0.3)}
+.badge.alerta{background:rgba(247,182,62,0.14);color:var(--amber);border:1px solid rgba(247,182,62,0.3)}
+.badge.critico{background:rgba(255,140,66,0.14);color:var(--orange);border:1px solid rgba(255,140,66,0.3)}
+.badge.vencido{background:rgba(255,77,109,0.14);color:var(--red);border:1px solid rgba(255,77,109,0.3)}
+.badge-pm{
+  display:inline-block;padding:2px 8px;border-radius:4px;
+  background:var(--bg4);color:var(--cyan2);font-family:var(--mono);
+  font-size:10px;font-weight:600;border:1px solid var(--line2);
+}
+
+/* ══════════ LOADING & EMPTY ══════════ */
+.loading{position:fixed;inset:0;background:rgba(10,14,26,0.95);display:none;align-items:center;justify-content:center;z-index:9999}
+.loading.active{display:flex}
+.spinner{width:52px;height:52px;border:3px solid var(--bg3);border-top-color:var(--cyan);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty{text-align:center;padding:56px 20px;color:var(--text3)}
+.empty-ico{font-size:42px;opacity:0.4;margin-bottom:12px}
+.empty-txt{font-size:14px;color:var(--text2);margin-bottom:4px;font-weight:600}
+.empty-sub{font-size:12px;color:var(--text3)}
+
+/* ══════════ TOAST ══════════ */
+.toast{
+  position:fixed;top:90px;right:28px;z-index:9000;
+  background:var(--bg3);border:1px solid var(--line2);
+  border-left:3px solid var(--cyan);padding:14px 20px;border-radius:8px;
+  box-shadow:var(--shadow);opacity:0;transform:translateX(20px);
+  transition:all 0.3s;pointer-events:none;max-width:340px;font-size:13px;
+}
+.toast.show{opacity:1;transform:translateX(0);pointer-events:auto}
+.toast.ok{border-left-color:var(--green)}
+.toast.err{border-left-color:var(--red)}
+.toast-title{font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:0.5px}
+.toast-msg{color:var(--text2);font-size:12px;line-height:1.45}
+
+/* ══════════ FOOTER ══════════ */
+.footer{
+  background:var(--bg2);border-top:1px solid var(--line);
+  padding:16px 28px;margin-top:40px;text-align:center;
+}
+.footer-text{
+  font-size:11px;color:var(--text3);
+  letter-spacing:0.8px;line-height:1.8;
+}
+.footer-text .lbl{color:var(--text3)}
+.footer-text .name{color:var(--cyan2);font-weight:700}
+.footer-text .role{color:var(--text2)}
+.footer-text a{color:var(--cyan);text-decoration:none;border-bottom:1px dashed transparent;transition:border-color 0.2s}
+.footer-text a:hover{border-bottom-color:var(--cyan)}
+
+/* ══════════ CALENDARIO PM TABLA ══════════ */
+.cal-month-row td{padding:12px 16px}
+.cal-month-row.total td{font-weight:700;color:var(--text);background:rgba(0,229,255,0.04);border-top:2px solid var(--line2)}
+.cal-pct-box{display:flex;align-items:center;gap:8px}
+.cal-pct-bar{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.cal-pct-fill{height:100%;border-radius:2px;transition:width 0.5s}
+
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading" id="loading"><div class="spinner"></div></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toast-title"></div>
+  <div class="toast-msg" id="toast-msg"></div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo">LG</div>
+    <div class="brand-text">
+      <div class="brand-name">LG360</div>
+      <div class="brand-sub">Sistema de Gestión</div>
+    </div>
+  </div>
+  <div class="page-title">Gestión de Mantenimiento — Flota</div>
+  <div class="topbar-right">
+    <div class="status-online"><span class="status-dot"></span>EN LÍNEA</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<!-- UPLOAD BAR -->
+<div class="upload-bar">
+  <label class="upload-icon" for="file-in" title="Cargar Excel">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+  </label>
+  <div class="upload-info">
+    <div class="upload-title">Actualizar base de datos</div>
+    <div class="upload-desc" id="upload-status">Sin archivo cargado — cargá tu Excel para comenzar</div>
+  </div>
+  <div class="upload-hint">Subí un Excel para actualizar</div>
+  <button class="btn-upload" id="btn-exportar" onclick="exportarReporte()" style="background:#36FFB0;margin-left:10px;display:none">💾 EXPORTAR</button>
+  <input type="file" id="file-in" accept=".xlsx,.xls">
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" data-tab="dash"><span class="ico">📊</span>DASHBOARD OPERATIVO</button>
+  <button class="tab-btn" data-tab="cal"><span class="ico">📅</span>CALENDARIO PM</button>
+  <button class="tab-btn" data-tab="plan"><span class="ico">🔧</span>PLANIFICACIÓN PM</button>
+  <button class="tab-btn" data-tab="hist"><span class="ico">📋</span>HISTORIAL PM</button>
+  <button class="tab-btn" data-tab="check"><span class="ico">✅</span>CHECK DIARIO</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- TAB 1: DASHBOARD OPERATIVO                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="tab-dash" class="tab-content active">
+
+  <!-- FILTROS -->
+  <div class="filters">
+    <div class="filter-group">
+      <label class="filter-label">📅 Fecha Inicio</label>
+      <input type="date" class="filter-input" id="dash-fecha-inicio">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">📅 Fecha Término</label>
+      <input type="date" class="filter-input" id="dash-fecha-termino">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">🚜 Equipo</label>
+      <select class="filter-select" id="dash-equipo"><option value="">Todos los equipos</option></select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">🌾 Finca</label>
+      <select class="filter-select" id="dash-finca"><option value="">Todas las fincas</option></select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">👷 Operador</label>
+      <select class="filter-select" id="dash-operador"><option value="">Todos</option></select>
+    </div>
+    <button class="btn btn-primary" onclick="aplicarFiltrosDash()">Aplicar</button>
+    <button class="btn btn-secondary" onclick="limpiarFiltrosDash()">Limpiar</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-tag">KPI-01</div>
+      <div class="kpi-lbl">Disponibilidad Operativa</div>
+      <div class="kpi-val ok" id="kpi-disponibilidad">—</div>
+      <div class="kpi-sub" id="kpi-disp-sub">% tiempo operativo</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-02</div>
+      <div class="kpi-lbl">Horas Máquina</div>
+      <div class="kpi-val ok" id="kpi-horas">—</div>
+      <div class="kpi-sub" id="kpi-horas-sub">Total Hs-Maq</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-03</div>
+      <div class="kpi-lbl">Horas Parada</div>
+      <div class="kpi-val crit" id="kpi-paradas">—</div>
+      <div class="kpi-sub" id="kpi-paradas-sub">Tiempo detenido</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-04</div>
+      <div class="kpi-lbl">Consumo Promedio</div>
+      <div class="kpi-val warn" id="kpi-prom">—</div>
+      <div class="kpi-sub">Litros / Hora</div>
+    </div>
+  </div>
+
+  <!-- GRID 3: ALERTAS + CHART + TOP -->
+  <div class="grid-3">
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title">Alertas Activas</div>
+        <div class="panel-tag" id="alert-count">—</div>
+      </div>
+      <div class="panel-body" id="alert-list">
+        <div class="empty">
+          <div class="empty-ico">📂</div>
+          <div class="empty-txt">Sin datos cargados</div>
+          <div class="empty-sub">Cargá un Excel para ver alertas</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title">Horas Operativas — Últimos 30 Días</div>
+        <div class="panel-tag">Serie Temporal</div>
+      </div>
+      <div class="panel-body">
+        <div class="chart-wrap" style="height:240px"><canvas id="chart-linea"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title">Top Equipos por Horas</div>
+        <div class="panel-tag">Ranking</div>
+      </div>
+      <div class="panel-body" id="top-equipos">
+        <div class="empty">
+          <div class="empty-ico">📊</div>
+          <div class="empty-txt">Sin datos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRID 2: BARRAS + DONA -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title">Horas por Equipo</div>
+        <div class="panel-tag">Distribución</div>
+      </div>
+      <div class="panel-body">
+        <div class="chart-wrap" style="height:280px"><canvas id="chart-barras"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title">Consumo por Finca</div>
+        <div class="panel-tag">Proporción</div>
+      </div>
+      <div class="panel-body">
+        <div class="chart-wrap" style="height:200px"><canvas id="chart-dona"></canvas></div>
+        <div id="dona-legend" style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- TAB 2: CALENDARIO PM                                                -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="tab-cal" class="tab-content">
+
+  <!-- FILTROS -->
+  <div class="filters">
+    <div class="filter-group">
+      <label class="filter-label">📅 Fecha Inicio</label>
+      <input type="date" class="filter-input" id="cal-fecha-inicio">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">📅 Fecha Término</label>
+      <input type="date" class="filter-input" id="cal-fecha-termino">
+    </div>
+    <button class="btn btn-primary" onclick="renderCalendario()">Aplicar</button>
+    <button class="btn btn-secondary" onclick="limpiarFiltrosCal()">Limpiar</button>
+  </div>
+
+  <!-- KPIs CALENDARIO -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-tag">KPI-01</div>
+      <div class="kpi-lbl">Total Planificado</div>
+      <div class="kpi-val" id="cal-planificado">—</div>
+      <div class="kpi-sub">PM programados</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-02</div>
+      <div class="kpi-lbl">Total Realizado</div>
+      <div class="kpi-val ok" id="cal-realizado">—</div>
+      <div class="kpi-sub">PM completados</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-03</div>
+      <div class="kpi-lbl">% Realizados</div>
+      <div class="kpi-val ok" id="cal-pct-ok">—</div>
+      <div class="kpi-sub">Cumplimiento</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-04</div>
+      <div class="kpi-lbl">% No Realizados</div>
+      <div class="kpi-val crit" id="cal-pct-no">—</div>
+      <div class="kpi-sub">Pendientes</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-title">Calendario PM — Planificado vs Realizado por Mes</div>
+      <div class="panel-tag" id="cal-count">—</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Mes</th>
+            <th class="text-c">Planificado</th>
+            <th class="text-c">Realizado</th>
+            <th class="text-c">Cumplimiento</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="cal-tbody">
+          <tr><td colspan="5"><div class="empty">
+            <div class="empty-ico">📂</div>
+            <div class="empty-txt">Sin datos cargados</div>
+            <div class="empty-sub">Cargá el Excel para ver el calendario PM</div>
+          </div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- TAB 3: PLANIFICACIÓN PM                                             -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="tab-plan" class="tab-content">
+
+  <!-- FILTROS -->
+  <div class="filters">
+    <div class="filter-group">
+      <label class="filter-label">📅 Fecha Inicio</label>
+      <input type="date" class="filter-input" id="plan-fecha-inicio">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">📅 Fecha Término</label>
+      <input type="date" class="filter-input" id="plan-fecha-termino">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">🚜 Equipo</label>
+      <select class="filter-select" id="plan-equipo"><option value="">Todos</option></select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">⚡ Estado</label>
+      <select class="filter-select" id="plan-estado">
+        <option value="">Todos</option>
+        <option value="ok">OK</option>
+        <option value="alerta">Alerta</option>
+        <option value="critico">Crítico</option>
+        <option value="vencido">Vencido</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="renderPlanificacion()">Aplicar</button>
+    <button class="btn btn-secondary" onclick="limpiarFiltrosPlan()">Limpiar</button>
+  </div>
+
+  <!-- KPIs PLAN -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-tag">KPI-01</div>
+      <div class="kpi-lbl">Total Equipos</div>
+      <div class="kpi-val" id="plan-total">—</div>
+      <div class="kpi-sub">En seguimiento</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-02</div>
+      <div class="kpi-lbl">OK</div>
+      <div class="kpi-val ok" id="plan-ok">—</div>
+      <div class="kpi-sub">&gt;100 hs faltantes</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-03</div>
+      <div class="kpi-lbl">Alerta</div>
+      <div class="kpi-val warn" id="plan-alerta">—</div>
+      <div class="kpi-sub">50–100 hs faltantes</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-04</div>
+      <div class="kpi-lbl">Crítico / Vencido</div>
+      <div class="kpi-val crit" id="plan-crit">—</div>
+      <div class="kpi-sub">&lt;50 hs o vencido</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-title">Planificación de Próximos PM</div>
+      <div class="panel-tag" id="plan-count">—</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Equipo</th>
+            <th>Próx PM</th>
+            <th class="text-c">Fecha Sugerida</th>
+            <th class="text-r">HS Faltantes</th>
+            <th class="text-c">Días Faltantes</th>
+            <th class="text-c">Estado</th>
+          </tr>
+        </thead>
+        <tbody id="plan-tbody">
+          <tr><td colspan="6"><div class="empty">
+            <div class="empty-ico">📂</div>
+            <div class="empty-txt">Sin datos cargados</div>
+            <div class="empty-sub">Cargá el Excel para ver la planificación</div>
+          </div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- TAB 4: HISTORIAL PM                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="tab-hist" class="tab-content">
+
+  <!-- FILTROS -->
+  <div class="filters">
+    <div class="filter-group">
+      <label class="filter-label">📅 Fecha Inicio</label>
+      <input type="date" class="filter-input" id="hist-fecha-inicio">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">📅 Fecha Término</label>
+      <input type="date" class="filter-input" id="hist-fecha-termino">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">🚜 Equipo</label>
+      <select class="filter-select" id="hist-equipo"><option value="">Todos</option></select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">🔧 Tipo PM</label>
+      <select class="filter-select" id="hist-tipo">
+        <option value="">Todos</option>
+        <option value="PM1">PM1</option>
+        <option value="PM2">PM2</option>
+        <option value="PM3">PM3</option>
+        <option value="PM4">PM4</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="renderHistorial()">Aplicar</button>
+    <button class="btn btn-secondary" onclick="limpiarFiltrosHist()">Limpiar</button>
+  </div>
+
+  <!-- KPIs HISTORIAL -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-tag">KPI-01</div>
+      <div class="kpi-lbl">Total PM Realizados</div>
+      <div class="kpi-val" id="hist-total">—</div>
+      <div class="kpi-sub">Histórico</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-02</div>
+      <div class="kpi-lbl">PM1</div>
+      <div class="kpi-val ok" id="hist-pm1">—</div>
+      <div class="kpi-sub">Primer nivel</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-03</div>
+      <div class="kpi-lbl">PM2</div>
+      <div class="kpi-val warn" id="hist-pm2">—</div>
+      <div class="kpi-sub">Segundo nivel</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-04</div>
+      <div class="kpi-lbl">PM3 / PM4</div>
+      <div class="kpi-val crit" id="hist-pm3plus">—</div>
+      <div class="kpi-sub">Tercer nivel y superior</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-title">Historial de PM Realizados</div>
+      <div class="panel-tag" id="hist-count">—</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Equipo</th>
+            <th>PM Realizado</th>
+            <th class="text-r">Horas</th>
+            <th class="text-c">Fecha Realizado</th>
+            <th>Sig. PM</th>
+            <th class="text-c">Fecha Planificada</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="hist-tbody">
+          <tr><td colspan="7"><div class="empty">
+            <div class="empty-ico">📂</div>
+            <div class="empty-txt">Sin datos cargados</div>
+            <div class="empty-sub">Cargá el Excel para ver el historial</div>
+          </div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- TAB 5: CHECK DIARIO -->
+<div id="tab-check" class="tab-content">
+
+  <div class="filters">
+    <div class="filter-group">
+      <label class="filter-label">🚜 Equipo</label>
+      <select class="filter-select" id="check-equipo">
+        <option value="">Todos los equipos</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">📅 Período</label>
+      <select class="filter-select" id="check-dias">
+        <option value="3">Últimos 3 días</option>
+        <option value="7">Últimos 7 días</option>
+        <option value="15">Últimos 15 días</option>
+        <option value="30">Últimos 30 días</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="renderCheckDiario()">Aplicar</button>
+    <button class="btn btn-secondary" onclick="limpiarFiltrosCheck()">Limpiar</button>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-tag">KPI-01</div>
+      <div class="kpi-lbl">Total Checks</div>
+      <div class="kpi-val" id="check-total">—</div>
+      <div class="kpi-sub" id="check-total-sub">Del período</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-02</div>
+      <div class="kpi-lbl">Con Observaciones</div>
+      <div class="kpi-val warn" id="check-obs">—</div>
+      <div class="kpi-sub">Requieren atención</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-03</div>
+      <div class="kpi-lbl">Sin Observaciones</div>
+      <div class="kpi-val ok" id="check-ok">—</div>
+      <div class="kpi-sub">Normal</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-tag">KPI-04</div>
+      <div class="kpi-lbl">Equipos</div>
+      <div class="kpi-val" id="check-equipos">—</div>
+      <div class="kpi-sub">Únicos</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-title">Observaciones de Check Diario</div>
+      <div class="panel-tag" id="check-count">—</div>
+    </div>
+    <div class="table-wrap" style="max-height:600px">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Equipo</th>
+            <th>Operador</th>
+            <th class="text-r">Horómetro</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="check-tbody">
+          <tr><td colspan="5"><div class="empty">
+            <div class="empty-ico">📂</div>
+            <div class="empty-txt">Sin datos</div>
+            <div class="empty-sub">Cargá el Excel</div>
+          </div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-text">
+    <span class="lbl">Dashboard elaborado por:</span>
+    <span class="name">Luis Goldenberg</span>
+    ·
+    <span class="role">Analista Técnico — Grupo Halpern</span>
+    ·
+    <a href="mailto:lgoldenberg@grupohalpern.com">lgoldenberg@grupohalpern.com</a>
+  </div>
+</div>
+
+<!-- LIBRERÍAS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ESTADO GLOBAL                                                       */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+// ═══════════════════════════════════════════════════════════════════
+// CONFIGURACIÓN AUTO-ACTUALIZACIÓN
+// ═══════════════════════════════════════════════════════════════════
+const SHAREPOINT_EXCEL_URL = "https://grupohalpern.sharepoint.com/_layouts/15/download.aspx?share=https%3A%2F%2Fgrupohalpern.sharepoint.com%2F%3Ax%3A%2Fs%2FMaquinarias992%2FIQA3-SSIzd8fT4VhOskhsqKxAVBWYoMJpRzF_to9LY6QOGk%3Fe%3DIzlfzf";
+const AUTO_REFRESH_MINUTES = 15; // Actualizar cada 15 minutos
+
+const STATE = {
+  partes: [],      // Desde SEGUIMIENTO-PARTES
+  planif: [],      // Desde PM (columnas 0-7)
+  hist: [],        // Desde PM (columnas 19-25)
+  calendario: [],  // Desde CALENDARIO PM (meses + totales)
+  calTotales: { planificado:0, realizado:0, pctOk:0, pctNo:0 },
+  charts: {}       // Instancias de Chart.js
+};
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* UTILIDADES                                                          */
+/* ═══════════════════════════════════════════════════════════════════ */
+function $(sel){ return document.querySelector(sel); }
+function $id(id){ return document.getElementById(id); }
+
+function fmtNum(n){
+  if(n == null || isNaN(n)) return '—';
+  return Math.round(n).toLocaleString('es-AR');
+}
+function fmtDec(n, d=1){
+  if(n == null || isNaN(n)) return '—';
+  return Number(n).toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+function fmtFecha(val){
+  if(!val) return '—';
+  try{
+    const d = val instanceof Date ? val : new Date(val);
+    if(isNaN(d)) return '—';
+    return d.toLocaleDateString('es-AR');
+  }catch(e){ return '—'; }
+}
+function parseFecha(val){
+  if(!val) return null;
+  if(val instanceof Date) return isNaN(val) ? null : val;
+  const d = new Date(val);
+  return isNaN(d) ? null : d;
+}
+
+function toast(title, msg, kind='ok'){
+  const t = $id('toast');
+  $id('toast-title').textContent = title;
+  $id('toast-msg').textContent = msg;
+  t.className = 'toast ' + kind + ' show';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>t.classList.remove('show'), 4200);
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* CLOCK                                                               */
+/* ═══════════════════════════════════════════════════════════════════ */
+function tickClock(){
+  const n = new Date();
+  const h = String(n.getHours()).padStart(2,'0');
+  const m = String(n.getMinutes()).padStart(2,'0');
+  const s = String(n.getSeconds()).padStart(2,'0');
+  $id('clock').textContent = `${h}:${m}:${s}`;
+}
+setInterval(tickClock, 1000); tickClock();
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* NAVEGACIÓN TABS                                                     */
+/* ═══════════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    $id('tab-' + tab).classList.add('active');
+    // Redibujar charts si corresponde (Chart.js a veces se pierde cuando estaba oculto)
+    if(tab === 'dash' && STATE.partes.length) {
+      setTimeout(()=>renderDash(), 50);
+    }
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* CARGA DE EXCEL                                                      */
+/* ═══════════════════════════════════════════════════════════════════ */
+$id('file-in').addEventListener('change', async function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  $id('loading').classList.add('active');
+  try{
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array', cellDates:true});
+    console.log('📚 Hojas:', wb.SheetNames);
+
+    // 1. SEGUIMIENTO-PARTES
+    const sheetPartes = ['SEGUIMIENTO-PARTES','BD-PART (2)','Sheet1'].find(n=>wb.SheetNames.includes(n)) || wb.SheetNames[0];
+    const wsP = wb.Sheets[sheetPartes];
+    const rowsP = XLSX.utils.sheet_to_json(wsP, {raw:false, defval:''});
+
+    STATE.partes = rowsP.map(r=>{
+      // ═══ CÁLCULO DE HORAS (LÓGICA DAX DE POWER BI) ═══
+      const horoInicio = parseFloat(r['HORÓMETRO INICIO']) || 0;
+      const horoFinal = parseFloat(r['HORÓMETRO FINAL']) || 0;
+      const diferenciaRaw = horoFinal - horoInicio;
+      
+      // Determinar orden de magnitud
+      let ordenMagnitud = 1;
+      const abs = Math.abs(diferenciaRaw);
+      if(abs >= 100000) ordenMagnitud = 10000;
+      else if(abs >= 10000) ordenMagnitud = 1000;
+      else if(abs >= 1000) ordenMagnitud = 100;
+      else if(abs >= 100) ordenMagnitud = 10;
+      
+      // Ajustar diferencia
+      const diferenciaAjustada = diferenciaRaw / ordenMagnitud;
+      
+      // Validar que esté en rango válido (0-20 horas)
+      const esValido = diferenciaAjustada > 0 && diferenciaAjustada <= 20;
+      
+      // Diferencia final (INT como en DAX)
+      const diferenciaFinal = esValido ? Math.floor(diferenciaAjustada) : 0;
+      
+      // Otros datos
+      const litros = parseFloat(r['LITROS']) || 0;
+      const hsParada = parseFloat(r['Indique cantidad horas de parada\xa0']) || 0;
+      const hsParte = parseFloat(r['HS-PARTE']) || 0;
+      const huboParada = (r['HUBO TIEMPO DE PARADA?\n\n'] || '').toString().trim();
+      
+      return {
+        fecha: parseFecha(r.FECHA || r.Fecha),
+        equipo: (r['EQUIPO DE TRABAJO'] || r.EQUIPO || '').toString().trim(),
+        operador: (r.OPERADOR || r.Operador || '').toString().trim(),
+        finca: (r.FINCA || r.Finca || '').toString().trim(),
+        lote: (r.LOTE || r.Lote || '').toString().trim(),
+        tarea: (r.TAREA || '').toString().trim(),
+        implementos: (r.IMPLEMENTOS || '').toString().trim(),
+        cuadro: (r['CUADRO O CUADROS '] || '').toString().trim(),
+        horas: diferenciaFinal,  // ✅ CALCULADO CON LÓGICA DAX
+        horasParada: Math.abs(hsParada) || 0,
+        litros: litros,
+        hsParte: hsParte,
+        horoInicio: horoInicio,
+        horoFinal: horoFinal,
+        huboParada: huboParada
+      };
+    }).filter(p=>p.equipo);
+
+    console.log(`✓ Partes: ${STATE.partes.length}`);
+
+    // 2. PM (Planificación + Historial)
+    STATE.planif = [];
+    STATE.hist = [];
+    if(wb.SheetNames.includes('PM')){
+      const wsPM = wb.Sheets['PM'];
+      const raw = XLSX.utils.sheet_to_json(wsPM, {header:1, raw:false, defval:''});
+      for(let i=2;i<raw.length;i++){
+        const r = raw[i];
+        // Planificación (cols 0-7)
+        if(r[0] && r[0] !== 'EQUIPO'){
+          const equipo = String(r[0]).trim();
+          
+          // EXCLUIR D8R-1 y D10-4
+          if(equipo === 'D8R-1' || equipo === 'D10-4') continue;
+          
+          const hsF = parseFloat(r[6]) || 0;
+          const diasF = parseFloat(r[7]) || 0;
+          let estado = 'ok';
+          if(hsF <= 0) estado = 'vencido';
+          else if(hsF <= 50) estado = 'critico';
+          else if(hsF <= 100) estado = 'alerta';
+          STATE.planif.push({
+            equipo: equipo,
+            proxPM: String(r[1]||'').trim(),
+            fechaSugerida: parseFecha(r[5]),
+            hsFaltantes: hsF,
+            diasFaltantes: diasF,
+            estado: estado
+          });
+        }
+        // Historial (cols 19-25)
+        if(r[19] && r[19] !== 'EQUIPO' && r[20]){
+          STATE.hist.push({
+            equipo: String(r[19]).trim(),
+            pmRealizado: String(r[20]||'').trim(),
+            horas: parseFloat(r[21]) || 0,
+            fechaRealizado: parseFecha(r[22]),
+            sigPM: String(r[23]||'').trim(),
+            fechaPlanificada: parseFecha(r[24]),
+            observaciones: String(r[25]||'').trim()
+          });
+        }
+      }
+    }
+    console.log(`✓ PM Planif: ${STATE.planif.length}, Hist: ${STATE.hist.length}`);
+
+    // 3. CALENDARIO PM
+    STATE.calendario = [];
+    STATE.calTotales = { planificado:0, realizado:0, pctOk:0, pctNo:0 };
+    if(wb.SheetNames.includes('CALENDARIO PM')){
+      const wsC = wb.Sheets['CALENDARIO PM'];
+      const raw = XLSX.utils.sheet_to_json(wsC, {header:1, raw:false, defval:''});
+      const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+      for(let i=0;i<raw.length;i++){
+        const r = raw[i];
+        const mesRaw = (r[6] || '').toString().toUpperCase().trim();
+        if(meses.includes(mesRaw)){
+          STATE.calendario.push({
+            mes: mesRaw,
+            planificado: parseInt(r[7]) || 0,
+            realizado: parseInt(r[8]) || 0,
+            observaciones: String(r[9]||'').trim()
+          });
+        }
+        if(mesRaw === 'TOTAL'){
+          STATE.calTotales.planificado = parseInt(r[7]) || 0;
+          STATE.calTotales.realizado = parseInt(r[8]) || 0;
+        }
+      }
+      // Calcular porcentajes
+      if(STATE.calTotales.planificado > 0){
+        STATE.calTotales.pctOk = Math.round((STATE.calTotales.realizado / STATE.calTotales.planificado) * 100);
+        STATE.calTotales.pctNo = 100 - STATE.calTotales.pctOk;
+      }
+    }
+    console.log(`✓ Calendario: ${STATE.calendario.length} meses`);
+
+    // 4. CHECK1
+    STATE.checks = [];
+    if(wb.SheetNames.includes('CHECK1')){
+      const wsCheck = wb.Sheets['CHECK1'];
+      const rowsCheck = XLSX.utils.sheet_to_json(wsCheck, {raw:false, defval:''});
+      STATE.checks = rowsCheck.map(r => ({
+        fecha: parseFecha(r.FECHA),
+        equipo: (r['EQUIPO DE TRABAJO'] || '').toString().trim(),
+        operador: (r.OPERADOR || '').toString().trim(),
+        horometro: parseFloat(r['HORÓMETRO']) || 0,
+        observaciones: (r.OBSERVACIONES || '').toString().trim()
+      })).filter(c => c.equipo && c.fecha);
+      console.log(`✓ Checks: ${STATE.checks.length} registros`);
+    }
+
+    // Update UI
+    $id('upload-status').textContent =
+      `✅ ${file.name} — ${STATE.partes.length} partes · ${STATE.planif.length} PM planif · ${STATE.hist.length} PM hist · ${STATE.calendario.length} meses`;
+
+    // Llenar filtros
+    llenarFiltrosDash();
+    llenarFiltrosPM();
+
+    // Renderizar TODO
+    renderDash();
+    renderCalendario();
+    renderPlanificacion();
+    renderHistorial();
+
+    document.getElementById('btn-exportar').style.display='inline-block';
+    toast('Archivo cargado', `${STATE.partes.length} partes, ${STATE.planif.length} PM planif, ${STATE.hist.length} PM hist`, 'ok');
+  }catch(err){
+    console.error(err);
+    toast('Error', 'No se pudo cargar: ' + err.message, 'err');
+  }
+  $id('loading').classList.remove('active');
+});
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* LLENAR FILTROS                                                      */
+/* ═══════════════════════════════════════════════════════════════════ */
+function llenarFiltrosDash(){
+  const eqs = [...new Set(STATE.partes.map(p=>p.equipo).filter(Boolean))].sort();
+  const fns = [...new Set(STATE.partes.map(p=>p.finca).filter(Boolean))].sort();
+  const ops = [...new Set(STATE.partes.map(p=>p.operador).filter(Boolean))].sort();
+  $id('dash-equipo').innerHTML = '<option value="">Todos los equipos</option>' + eqs.map(e=>`<option>${e}</option>`).join('');
+  $id('dash-finca').innerHTML = '<option value="">Todas las fincas</option>' + fns.map(f=>`<option>${f}</option>`).join('');
+  $id('dash-operador').innerHTML = '<option value="">Todos</option>' + ops.map(o=>`<option>${o}</option>`).join('');
+}
+function llenarFiltrosPM(){
+  const eqsP = [...new Set(STATE.planif.map(p=>p.equipo).filter(Boolean))].sort();
+  const eqsH = [...new Set(STATE.hist.map(h=>h.equipo).filter(Boolean))].sort();
+  $id('plan-equipo').innerHTML = '<option value="">Todos</option>' + eqsP.map(e=>`<option>${e}</option>`).join('');
+  $id('hist-equipo').innerHTML = '<option value="">Todos</option>' + eqsH.map(e=>`<option>${e}</option>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* FILTROS — DASHBOARD OPERATIVO                                       */
+/* ═══════════════════════════════════════════════════════════════════ */
+function getPartesFiltrados(){
+  let data = [...STATE.partes];
+  const fI = $id('dash-fecha-inicio').value;
+  const fT = $id('dash-fecha-termino').value;
+  const eq = $id('dash-equipo').value;
+  const fn = $id('dash-finca').value;
+  const op = $id('dash-operador').value;
+  if(fI) data = data.filter(p => p.fecha && p.fecha >= new Date(fI));
+  if(fT) data = data.filter(p => p.fecha && p.fecha <= new Date(fT + 'T23:59:59'));
+  if(eq) data = data.filter(p => p.equipo === eq);
+  if(fn) data = data.filter(p => p.finca === fn);
+  if(op) data = data.filter(p => p.operador === op);
+  return data;
+}
+
+function aplicarFiltrosDash(){ renderDash(); }
+function limpiarFiltrosDash(){
+  ['dash-fecha-inicio','dash-fecha-termino','dash-equipo','dash-finca','dash-operador'].forEach(id=>{
+    $id(id).value='';
+  });
+  renderDash();
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* RENDER — DASHBOARD OPERATIVO                                        */
+/* ═══════════════════════════════════════════════════════════════════ */
+function renderDash(){
+  const data = getPartesFiltrados();
+
+  // KPIs CORREGIDOS
+  const totalHsMaq = data.reduce((s,p)=>s+p.horas, 0);  // Hs-Maq
+  const totalHsParada = data.reduce((s,p)=>s+p.horasParada, 0);  // Horas parada
+  const totalLt = data.reduce((s,p)=>s+p.litros, 0);
+  const promLH = totalHsMaq > 0 ? totalLt/totalHsMaq : 0;
+  
+  // Disponibilidad = (Hs Maq / (Hs Maq + Hs Parada)) * 100
+  const disponibilidad = (totalHsMaq + totalHsParada) > 0 
+    ? (totalHsMaq / (totalHsMaq + totalHsParada)) * 100 
+    : 0;
+
+  $id('kpi-disponibilidad').textContent = fmtDec(disponibilidad, 1) + '%';
+  $id('kpi-horas').textContent = fmtNum(totalHsMaq);
+  $id('kpi-paradas').textContent = fmtNum(totalHsParada);
+  $id('kpi-prom').textContent = fmtDec(promLH, 1);
+
+  $id('kpi-disp-sub').textContent = data.length ? `${fmtNum(totalHsMaq)}h op vs ${fmtNum(totalHsParada)}h parada` : 'Sin datos';
+  $id('kpi-horas-sub').textContent = data.length ? `De ${data.length} partes` : '—';
+  $id('kpi-paradas-sub').textContent = data.length ? `Eventos con parada` : '—';
+
+  // ALERTAS
+  renderAlertas(data);
+
+  // TOP EQUIPOS
+  renderTopEquipos(data);
+
+  // CHARTS
+  renderChartLinea(data);
+  renderChartBarras(data);
+  renderChartDona(data);
+}
+
+function renderAlertas(data){
+  const cont = $id('alert-list');
+  if(!data.length){
+    cont.innerHTML = `<div class="empty"><div class="empty-ico">📂</div><div class="empty-txt">Sin datos</div></div>`;
+    $id('alert-count').textContent = '—';
+    return;
+  }
+  const alertas = [];
+  // PM vencidos
+  const vencidos = STATE.planif.filter(p=>p.estado==='vencido').length;
+  if(vencidos > 0) alertas.push({txt:`${vencidos} equipo(s) con PM VENCIDO`, kind:'crit'});
+  const criticos = STATE.planif.filter(p=>p.estado==='critico').length;
+  if(criticos > 0) alertas.push({txt:`${criticos} equipo(s) en estado crítico`, kind:''});
+  const alertasPM = STATE.planif.filter(p=>p.estado==='alerta').length;
+  if(alertasPM > 0) alertas.push({txt:`${alertasPM} equipo(s) en alerta`, kind:''});
+  // Consumo alto
+  const promLH = data.reduce((s,p)=>s+p.litros,0) / Math.max(data.reduce((s,p)=>s+p.horas,0),1);
+  if(promLH > 25) alertas.push({txt:`Consumo promedio elevado: ${fmtDec(promLH,1)} L/h`, kind:''});
+  if(!alertas.length) alertas.push({txt:'Todo en orden — sin alertas', kind:'ok'});
+  $id('alert-count').textContent = alertas.filter(a=>a.kind!=='ok').length || 'OK';
+  cont.innerHTML = alertas.map(a=>`
+    <div class="alert-item ${a.kind}">
+      <div class="alert-dot"></div>
+      <div class="alert-text">${a.txt}</div>
+      <div class="alert-arrow">›</div>
+    </div>`).join('');
+}
+
+function renderTopEquipos(data){
+  const cont = $id('top-equipos');
+  if(!data.length){
+    cont.innerHTML = `<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">Sin datos</div></div>`;
+    return;
+  }
+  const agg = {};
+  data.forEach(p=>{ agg[p.equipo] = (agg[p.equipo]||0) + p.horas; });
+  const arr = Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max = arr[0] ? arr[0][1] : 1;
+  cont.innerHTML = arr.map(([eq,hs])=>{
+    const pct = Math.round((hs/max)*100);
+    const col = pct > 75 ? 'var(--cyan)' : pct > 50 ? 'var(--green)' : pct > 25 ? 'var(--amber)' : 'var(--text3)';
+    return `<div class="sys-row">
+      <div class="sys-name">${eq}</div>
+      <div class="sys-bar-wrap"><div class="sys-bar" style="width:${pct}%;background:${col}"></div></div>
+      <div class="sys-hrs">${fmtNum(hs)}h</div>
+      <div class="sys-pct" style="color:${col}">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+function renderChartLinea(data){
+  const ctx = $id('chart-linea');
+  if(!ctx) return;
+  // Últimos 30 días
+  const hoy = new Date();
+  const map = {};
+  for(let i=29;i>=0;i--){
+    const d = new Date(hoy);
+    d.setDate(hoy.getDate() - i);
+    const k = d.toISOString().slice(0,10);
+    map[k] = 0;
+  }
+  data.forEach(p=>{
+    if(!p.fecha) return;
+    const k = p.fecha.toISOString().slice(0,10);
+    if(k in map) map[k] += p.horas;
+  });
+  const labels = Object.keys(map).map(k=>{
+    const d = new Date(k+'T12:00');
+    return d.getDate()+'/'+(d.getMonth()+1);
+  });
+  const values = Object.values(map);
+
+  if(STATE.charts.linea) STATE.charts.linea.destroy();
+  STATE.charts.linea = new Chart(ctx, {
+    type:'line',
+    data:{labels, datasets:[{
+      label:'Horas Operativas', data:values,
+      borderColor:'#00E5FF', backgroundColor:'rgba(0,229,255,0.1)',
+      borderWidth:3, tension:0.4, fill:true, 
+      pointRadius:3, pointHoverRadius:8,
+      pointBackgroundColor:'#00E5FF',
+      pointBorderColor:'#0A0E1A',
+      pointBorderWidth:2,
+      pointHoverBackgroundColor:'#00E5FF',
+      pointHoverBorderColor:'#fff',
+      pointHoverBorderWidth:3
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          enabled:true,
+          backgroundColor:'rgba(19,29,46,0.95)',
+          titleColor:'#00E5FF',
+          bodyColor:'#E6EEF8',
+          borderColor:'#00E5FF',
+          borderWidth:1,
+          padding:12,
+          displayColors:true,
+          callbacks:{
+            title:function(ctx){return 'Fecha: '+ctx[0].label},
+            label:function(ctx){return 'Horas: '+ctx.parsed.y.toFixed(1)+' h'},
+            footer:function(ctx){
+              var total=values.reduce((a,b)=>a+b,0);
+              var pct=(ctx[0].parsed.y/total*100).toFixed(1);
+              return 'Del total: '+pct+'%';
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#6B7D96', font:{size:10}}, grid:{color:'rgba(42,63,95,0.25)'}},
+        y:{
+          ticks:{color:'#6B7D96', font:{size:10}}, 
+          grid:{color:'rgba(42,63,95,0.25)'},
+          beginAtZero:true
+        }
+      },
+      onClick:function(evt, elements){
+        if(elements.length>0){
+          var idx=elements[0].index;
+          var fecha=labels[idx];
+          var horas=values[idx];
+          toast('Detalle del día', fecha+': '+horas+' horas trabajadas', 'ok');
+        }
+      }
+    }
+  });
+}
+
+function renderChartBarras(data){
+  const ctx = $id('chart-barras');
+  if(!ctx) return;
+  const agg = {};
+  data.forEach(p=>{ agg[p.equipo] = (agg[p.equipo]||0) + p.horas; });
+  const arr = Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,12);
+
+  if(STATE.charts.barras) STATE.charts.barras.destroy();
+  STATE.charts.barras = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: arr.map(x=>x[0]),
+      datasets:[{
+        label:'Horas Trabajadas', 
+        data: arr.map(x=>Math.round(x[1])),
+        backgroundColor: arr.map((x,i)=>{
+          var pct=(x[1]/arr[0][1])*100;
+          if(pct>80)return'rgba(0,229,255,0.7)';
+          if(pct>60)return'rgba(54,255,176,0.7)';
+          if(pct>40)return'rgba(247,182,62,0.7)';
+          return'rgba(163,179,201,0.5)';
+        }),
+        borderColor: arr.map((x,i)=>{
+          var pct=(x[1]/arr[0][1])*100;
+          if(pct>80)return'#00E5FF';
+          if(pct>60)return'#36FFB0';
+          if(pct>40)return'#F7B63E';
+          return'#6B7D96';
+        }),
+        borderWidth:2, borderRadius:6,
+        hoverBackgroundColor: arr.map(()=>'rgba(0,229,255,0.9)'),
+        hoverBorderColor:'#00E5FF',
+        hoverBorderWidth:3
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      interaction:{mode:'nearest'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(19,29,46,0.95)',
+          titleColor:'#00E5FF',
+          bodyColor:'#E6EEF8',
+          borderColor:'#00E5FF',
+          borderWidth:1,
+          padding:12,
+          callbacks:{
+            title:function(ctx){return 'Equipo: '+ctx[0].label},
+            label:function(ctx){return 'Horas: '+ctx.parsed.x+' h'},
+            footer:function(ctx){
+              var total=arr.reduce((s,x)=>s+x[1],0);
+              var pct=(ctx[0].parsed.x/total*100).toFixed(1);
+              return 'Del total: '+pct+'%';
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{color:'#6B7D96', font:{size:10}}, 
+          grid:{color:'rgba(42,63,95,0.25)'},
+          beginAtZero:true
+        },
+        y:{
+          ticks:{color:'#A3B3C9', font:{size:10, family:'JetBrains Mono'}}, 
+          grid:{display:false}
+        }
+      },
+      onClick:function(evt, elements){
+        if(elements.length>0){
+          var idx=elements[0].index;
+          var equipo=arr[idx][0];
+          var horas=arr[idx][1];
+          toast('Detalle equipo', equipo+': '+Math.round(horas)+' horas trabajadas', 'ok');
+        }
+      }
+    }
+  });
+}
+
+function renderChartDona(data){
+  const ctx = $id('chart-dona');
+  if(!ctx) return;
+  const agg = {};
+  data.forEach(p=>{ if(p.finca) agg[p.finca] = (agg[p.finca]||0) + p.litros; });
+  const arr = Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const total = arr.reduce((s,x)=>s+x[1], 0);
+  const colores = ['#00E5FF','#36FFB0','#F7B63E','#FF8C42','#FF4D6D','#0288A8'];
+
+  if(STATE.charts.dona) STATE.charts.dona.destroy();
+  STATE.charts.dona = new Chart(ctx, {
+    type:'doughnut',
+    data:{labels: arr.map(x=>x[0]), datasets:[{
+      data: arr.map(x=>Math.round(x[1])),
+      backgroundColor: colores, 
+      borderColor:'#0A0E1A', 
+      borderWidth:2,
+      hoverBorderColor:'#00E5FF',
+      hoverBorderWidth:3,
+      hoverOffset:8
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'65%',
+      interaction:{mode:'point'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(19,29,46,0.95)',
+          titleColor:'#00E5FF',
+          bodyColor:'#E6EEF8',
+          borderColor:'#00E5FF',
+          borderWidth:1,
+          padding:12,
+          callbacks:{
+            title:function(ctx){return 'Finca: '+ctx[0].label},
+            label:function(ctx){
+              var valor=ctx.parsed;
+              var pct=(valor/total*100).toFixed(1);
+              return 'Consumo: '+Math.round(valor)+' L ('+pct+'%)';
+            }
+          }
+        }
+      },
+      onClick:function(evt, elements){
+        if(elements.length>0){
+          var idx=elements[0].index;
+          var finca=arr[idx][0];
+          var litros=arr[idx][1];
+          var pct=(litros/total*100).toFixed(1);
+          toast('Detalle finca', finca+': '+Math.round(litros)+' L ('+pct+'%)', 'ok');
+        }
+      }
+    }
+  });
+  $id('dona-legend').innerHTML = arr.map(([f,v],i)=>{
+    const pct = total ? Math.round((v/total)*100) : 0;
+    return `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)">
+      <span style="width:10px;height:10px;background:${colores[i]};border-radius:2px"></span>
+      ${f} <span style="color:var(--text3)">(${pct}%)</span>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* RENDER — CALENDARIO PM                                              */
+/* ═══════════════════════════════════════════════════════════════════ */
+function limpiarFiltrosCal(){
+  $id('cal-fecha-inicio').value='';
+  $id('cal-fecha-termino').value='';
+  renderCalendario();
+}
+function renderCalendario(){
+  const tb = $id('cal-tbody');
+  if(!STATE.calendario.length){
+    tb.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-ico">📂</div><div class="empty-txt">Sin datos</div><div class="empty-sub">Cargá el Excel</div></div></td></tr>`;
+    return;
+  }
+  // Filtro por mes según fechas (opcional — por número de mes)
+  const fI = $id('cal-fecha-inicio').value;
+  const fT = $id('cal-fecha-termino').value;
+  const mesesMap = {'ENERO':1,'FEBRERO':2,'MARZO':3,'ABRIL':4,'MAYO':5,'JUNIO':6,'JULIO':7,'AGOSTO':8,'SEPTIEMBRE':9,'OCTUBRE':10,'NOVIEMBRE':11,'DICIEMBRE':12};
+  let rows = [...STATE.calendario];
+  if(fI || fT){
+    const anioActual = new Date().getFullYear();
+    const mI = fI ? new Date(fI).getMonth()+1 : 1;
+    const mT = fT ? new Date(fT).getMonth()+1 : 12;
+    rows = rows.filter(r => {
+      const m = mesesMap[r.mes] || 0;
+      return m >= mI && m <= mT;
+    });
+  }
+
+  // Totales del período filtrado
+  const totPlan = rows.reduce((s,r)=>s+r.planificado, 0);
+  const totReal = rows.reduce((s,r)=>s+r.realizado, 0);
+  const pctOk = totPlan > 0 ? Math.round((totReal/totPlan)*100) : 0;
+  const pctNo = 100 - pctOk;
+
+  $id('cal-planificado').textContent = fmtNum(totPlan);
+  $id('cal-realizado').textContent = fmtNum(totReal);
+  $id('cal-pct-ok').textContent = pctOk + '%';
+  $id('cal-pct-no').textContent = pctNo + '%';
+  $id('cal-count').textContent = rows.length + ' meses';
+
+  const htmlRows = rows.map(r=>{
+    const pct = r.planificado > 0 ? Math.round((r.realizado/r.planificado)*100) : 0;
+    const col = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : pct > 0 ? 'var(--orange)' : 'var(--red)';
+    return `<tr class="cal-month-row">
+      <td style="font-weight:600;color:var(--text)">${r.mes}</td>
+      <td class="text-c mono">${r.planificado}</td>
+      <td class="text-c mono" style="color:var(--green);font-weight:700">${r.realizado}</td>
+      <td class="text-c">
+        <div class="cal-pct-box">
+          <div class="cal-pct-bar"><div class="cal-pct-fill" style="width:${Math.min(pct,100)}%;background:${col}"></div></div>
+          <span class="mono" style="color:${col};font-weight:700;min-width:44px">${pct}%</span>
+        </div>
+      </td>
+      <td style="color:var(--text3);font-size:12px">${r.observaciones || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const totalRow = `<tr class="cal-month-row total">
+    <td>TOTAL</td>
+    <td class="text-c mono">${totPlan}</td>
+    <td class="text-c mono">${totReal}</td>
+    <td class="text-c mono">${pctOk}%</td>
+    <td>—</td>
+  </tr>`;
+
+  tb.innerHTML = htmlRows + totalRow;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* RENDER — PLANIFICACIÓN PM                                           */
+/* ═══════════════════════════════════════════════════════════════════ */
+function limpiarFiltrosPlan(){
+  ['plan-fecha-inicio','plan-fecha-termino','plan-equipo','plan-estado'].forEach(id=>$id(id).value='');
+  renderPlanificacion();
+}
+function renderPlanificacion(){
+  const tb = $id('plan-tbody');
+  if(!STATE.planif.length){
+    tb.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-ico">📂</div><div class="empty-txt">Sin datos</div><div class="empty-sub">Cargá el Excel</div></div></td></tr>`;
+    ['plan-total','plan-ok','plan-alerta','plan-crit'].forEach(id=>$id(id).textContent='—');
+    return;
+  }
+  let data = [...STATE.planif];
+  const fI = $id('plan-fecha-inicio').value;
+  const fT = $id('plan-fecha-termino').value;
+  const eq = $id('plan-equipo').value;
+  const es = $id('plan-estado').value;
+  if(fI) data = data.filter(d => d.fechaSugerida && d.fechaSugerida >= new Date(fI));
+  if(fT) data = data.filter(d => d.fechaSugerida && d.fechaSugerida <= new Date(fT + 'T23:59:59'));
+  if(eq) data = data.filter(d => d.equipo === eq);
+  if(es) data = data.filter(d => d.estado === es);
+
+  // KPIs
+  $id('plan-total').textContent = data.length;
+  $id('plan-ok').textContent = data.filter(d=>d.estado==='ok').length;
+  $id('plan-alerta').textContent = data.filter(d=>d.estado==='alerta').length;
+  $id('plan-crit').textContent = data.filter(d=>d.estado==='critico' || d.estado==='vencido').length;
+  $id('plan-count').textContent = data.length + ' equipos';
+
+  if(!data.length){
+    tb.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-ico">🔍</div><div class="empty-txt">Sin resultados</div><div class="empty-sub">Probá con otros filtros</div></div></td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = data.map(d=>{
+    const hsCol = d.hsFaltantes <= 0 ? 'var(--red)' : d.hsFaltantes <= 50 ? 'var(--orange)' : d.hsFaltantes <= 100 ? 'var(--amber)' : 'var(--green)';
+    const diasCol = d.diasFaltantes <= 0 ? 'var(--red)' : d.diasFaltantes <= 7 ? 'var(--orange)' : d.diasFaltantes <= 14 ? 'var(--amber)' : 'var(--text2)';
+    return `<tr>
+      <td class="eq-cell">${d.equipo}</td>
+      <td><span class="badge-pm">${d.proxPM || '—'}</span></td>
+      <td class="text-c">${fmtFecha(d.fechaSugerida)}</td>
+      <td class="text-r mono" style="color:${hsCol};font-weight:700">${d.hsFaltantes <= 0 ? 'VENCIDO' : fmtNum(d.hsFaltantes)+' h'}</td>
+      <td class="text-c mono" style="color:${diasCol};font-weight:600">${d.diasFaltantes <= 0 ? 'HOY' : d.diasFaltantes+' d'}</td>
+      <td class="text-c"><span class="badge ${d.estado}">${d.estado}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* RENDER — HISTORIAL PM                                               */
+/* ═══════════════════════════════════════════════════════════════════ */
+function limpiarFiltrosHist(){
+  ['hist-fecha-inicio','hist-fecha-termino','hist-equipo','hist-tipo'].forEach(id=>$id(id).value='');
+  renderHistorial();
+}
+function renderHistorial(){
+  const tb = $id('hist-tbody');
+  if(!STATE.hist.length){
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-ico">📂</div><div class="empty-txt">Sin datos</div><div class="empty-sub">Cargá el Excel</div></div></td></tr>`;
+    ['hist-total','hist-pm1','hist-pm2','hist-pm3plus'].forEach(id=>$id(id).textContent='—');
+    return;
+  }
+  let data = [...STATE.hist];
+  const fI = $id('hist-fecha-inicio').value;
+  const fT = $id('hist-fecha-termino').value;
+  const eq = $id('hist-equipo').value;
+  const tp = $id('hist-tipo').value;
+  if(fI) data = data.filter(d => d.fechaRealizado && d.fechaRealizado >= new Date(fI));
+  if(fT) data = data.filter(d => d.fechaRealizado && d.fechaRealizado <= new Date(fT + 'T23:59:59'));
+  if(eq) data = data.filter(d => d.equipo === eq);
+  if(tp) data = data.filter(d => (d.pmRealizado||'').toUpperCase().includes(tp));
+
+  // Ordenar por fecha descendente
+  data.sort((a,b)=>{
+    const da = a.fechaRealizado ? a.fechaRealizado.getTime() : 0;
+    const db = b.fechaRealizado ? b.fechaRealizado.getTime() : 0;
+    return db - da;
+  });
+
+  // KPIs
+  $id('hist-total').textContent = data.length;
+  $id('hist-pm1').textContent = data.filter(d=>(d.pmRealizado||'').toUpperCase().includes('PM1')).length;
+  $id('hist-pm2').textContent = data.filter(d=>(d.pmRealizado||'').toUpperCase().includes('PM2')).length;
+  $id('hist-pm3plus').textContent = data.filter(d=>{
+    const s = (d.pmRealizado||'').toUpperCase();
+    return s.includes('PM3') || s.includes('PM4');
+  }).length;
+  $id('hist-count').textContent = data.length + ' registros';
+
+  if(!data.length){
+    tb.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-ico">🔍</div><div class="empty-txt">Sin resultados</div><div class="empty-sub">Probá con otros filtros</div></div></td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = data.map(d=>`<tr>
+    <td class="eq-cell">${d.equipo}</td>
+    <td><span class="badge-pm">${d.pmRealizado || '—'}</span></td>
+    <td class="text-r mono">${d.horas ? fmtNum(d.horas)+' h' : '—'}</td>
+    <td class="text-c" style="color:var(--green);font-weight:600">${fmtFecha(d.fechaRealizado)}</td>
+    <td><span class="badge-pm">${d.sigPM || '—'}</span></td>
+    <td class="text-c" style="color:var(--text3)">${fmtFecha(d.fechaPlanificada)}</td>
+    <td style="color:var(--text3);font-size:12px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.observaciones||''}">${d.observaciones || '—'}</td>
+  </tr>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* INIT (empty state por defecto)                                      */
+/* ═══════════════════════════════════════════════════════════════════ */
+renderDash();
+renderCalendario();
+renderPlanificacion();
+renderHistorial();
+
+
+
+/* ══════════════════════════════════════════════════════════ */
+/* CHECK DIARIO                                               */
+/* ══════════════════════════════════════════════════════════ */
+function llenarFiltrosCheck(){
+  const eqs = [...new Set(STATE.checks.map(c=>c.equipo).filter(Boolean))].sort();
+  const sel = $id('check-equipo');
+  sel.innerHTML = '<option value="">Todos los equipos</option>' + 
+    eqs.map(e=>`<option value="${e}">${e}</option>`).join('');
+}
+
+function limpiarFiltrosCheck(){
+  $id('check-equipo').value = '';
+  $id('check-dias').value = '3';
+  renderCheckDiario();
+}
+
+function renderCheckDiario(){
+  const tb = $id('check-tbody');
+  
+  if(!STATE.checks.length){
+    tb.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-ico">📂</div><div class="empty-txt">Sin datos</div><div class="empty-sub">Cargá el Excel</div></div></td></tr>';
+    ['check-total','check-obs','check-ok','check-equipos'].forEach(id=>$id(id).textContent='—');
+    return;
+  }
+  
+  // Filtros
+  const eq = $id('check-equipo').value;
+  const dias = parseInt($id('check-dias').value) || 3;
+  
+  // Calcular fecha límite
+  const hoy = new Date();
+  const fechaLimite = new Date(hoy);
+  fechaLimite.setDate(hoy.getDate() - dias);
+  
+  // Filtrar datos
+  let data = STATE.checks.filter(c => c.fecha && c.fecha >= fechaLimite);
+  if(eq) data = data.filter(c => c.equipo === eq);
+  
+  // Ordenar por fecha descendente
+  data.sort((a,b) => b.fecha - a.fecha);
+  
+  // KPIs
+  const conObs = data.filter(c => c.observaciones.length > 0).length;
+  const sinObs = data.length - conObs;
+  const equiposUnicos = [...new Set(data.map(c => c.equipo))].length;
+  
+  $id('check-total').textContent = fmtNum(data.length);
+  $id('check-obs').textContent = fmtNum(conObs);
+  $id('check-ok').textContent = fmtNum(sinObs);
+  $id('check-equipos').textContent = fmtNum(equiposUnicos);
+  $id('check-total-sub').textContent = `Últimos ${dias} días`;
+  $id('check-count').textContent = data.length + ' registros';
+  
+  if(!data.length){
+    tb.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-ico">🔍</div><div class="empty-txt">Sin resultados</div><div class="empty-sub">Probá otros filtros</div></div></td></tr>';
+    return;
+  }
+  
+  // Renderizar tabla
+  tb.innerHTML = data.map(c => {
+    const hasObs = c.observaciones.length > 0;
+    const rowStyle = hasObs ? ' style="background:rgba(247,182,62,0.05)"' : '';
+    const obsText = c.observaciones || '<em style="opacity:0.5">Sin observaciones</em>';
+    const obsColor = hasObs ? 'var(--amber)' : 'var(--text3)';
+    
+    return `<tr${rowStyle}>
+      <td style="color:var(--text);font-weight:600">${fmtFecha(c.fecha)}</td>
+      <td class="eq-cell">${c.equipo}</td>
+      <td>${c.operador}</td>
+      <td class="mono text-r">${c.horometro ? fmtNum(c.horometro) : '—'}</td>
+      <td style="color:${obsColor};max-width:500px">${obsText}</td>
+    </tr>`;
+  }).join('');
+}
+
+
+/* ══════════════════════════════════════════════════════════ */
+/* AUTO-CARGA DESDE SHAREPOINT                                */
+/* ══════════════════════════════════════════════════════════ */
+async function cargarDesdeSharePoint(){
+  const statusEl = $id('upload-status');
+  const btnExportar = $id('btn-exportar');
+  
+  try {
+    statusEl.textContent = '🔄 Cargando desde SharePoint...';
+    statusEl.style.color = 'var(--cyan)';
+    console.log('📥 Iniciando descarga desde SharePoint...');
+    
+    // Descargar archivo
+    const response = await fetch(SHAREPOINT_EXCEL_URL);
+    if(!response.ok) throw new Error('Error al descargar: ' + response.status);
+    
+    const blob = await response.blob();
+    console.log('✓ Archivo descargado:', (blob.size / 1024).toFixed(0), 'KB');
+    
+    statusEl.textContent = '⚙️ Procesando datos...';
+    
+    // Leer con SheetJS
+    const arrayBuffer = await blob.arrayBuffer();
+    const wb = XLSX.read(arrayBuffer, {type:'array'});
+    
+    console.log('✓ Libro abierto. Hojas:', wb.SheetNames.join(', '));
+    
+    // Procesar igual que la carga manual
+    // (Copiar el código de procesamiento aquí)
+    
+    // 1. SEGUIMIENTO-PARTES
+    STATE.partes = [];
+    if(wb.SheetNames.includes('SEGUIMIENTO-PARTES')){
+      const ws = wb.Sheets['SEGUIMIENTO-PARTES'];
+      const rows = XLSX.utils.sheet_to_json(ws, {raw:false, defval:''});
+      
+      STATE.partes = rows.map(r => {
+        const horas = parseFloat(r['HORAS MÁQUINA']) || 0;
+        const horasParada = parseFloat(r['HORAS MÁQUINA PARADA']) || 0;
+        const litros = parseFloat(r['LITROS CARGADOS']) || 0;
+        const horoInicio = parseFloat(r['HORÓMETRO INICIO']) || 0;
+        const horoFinal = parseFloat(r['HORÓMETRO FINAL']) || 0;
+        let hsParte = horoFinal - horoInicio;
+        
+        if(hsParte > 1000) hsParte = hsParte / 10;
+        if(hsParte < 0 || hsParte > 20) hsParte = 0;
+        if(horas < 0 || horas > 20) horas = 0;
+        
+        return {
+          fecha: parseFecha(r.FECHA),
+          equipo: (r['EQUIPO DE TRABAJO'] || '').toString().trim(),
+          operador: (r.OPERADOR || '').toString().trim(),
+          finca: (r.FINCA || '').toString().trim(),
+          lote: (r.LOTE || '').toString().trim(),
+          tarea: (r.TAREA || '').toString().trim(),
+          implementos: (r.IMPLEMENTOS || '').toString().trim(),
+          cuadro: (r.CUADRO || '').toString().trim(),
+          horas: horas,
+          horasParada: horasParada,
+          litros: litros,
+          hsParte: hsParte,
+          horoInicio: horoInicio,
+          horoFinal: horoFinal,
+          huboParada: (r['HUBO PARADA'] || '').toString().trim()
+        };
+      }).filter(p => p.equipo && p.fecha);
+      
+      console.log(`✓ Partes: ${STATE.partes.length} registros`);
+    }
+    
+    // 2. PM
+    STATE.planif = [];
+    STATE.hist = [];
+    if(wb.SheetNames.includes('PM')){
+      const wsPM = wb.Sheets['PM'];
+      const rowsPM = XLSX.utils.sheet_to_json(wsPM, {header:1, raw:false, defval:''});
+      
+      for(let r of rowsPM.slice(1)){
+        if(!r[0]) continue;
+        const proxPM = r[1] ? r[1].toString().trim() : '';
+        if(!proxPM) continue;
+        
+        const fechaSug = parseFecha(r[2]);
+        const hsFaltantes = parseFloat(r[3]) || 0;
+        const diasFaltantes = parseFloat(r[4]) || 0;
+        
+        let estado = 'ok';
+        if(diasFaltantes < 0) estado = 'vencido';
+        else if(diasFaltantes <= 3) estado = 'critico';
+        else if(diasFaltantes <= 7) estado = 'alerta';
+        
+        STATE.planif.push({
+          equipo: r[0].toString().trim(),
+          proxPM: proxPM,
+          fechaSugerida: fechaSug,
+          hsFaltantes: hsFaltantes,
+          diasFaltantes: diasFaltantes,
+          estado: estado
+        });
+      }
+      
+      for(let r of rowsPM.slice(1)){
+        if(!r[19]) continue;
+        STATE.hist.push({
+          equipo: r[19].toString().trim(),
+          pmRealizado: r[20] ? r[20].toString().trim() : '',
+          horas: parseFloat(r[21]) || 0,
+          fechaRealizado: parseFecha(r[22]),
+          sigPM: r[23] ? r[23].toString().trim() : '',
+          fechaPlanificada: parseFecha(r[24]),
+          observaciones: r[25] ? r[25].toString().trim() : ''
+        });
+      }
+      
+      console.log(`✓ PM Planif: ${STATE.planif.length}, Historial: ${STATE.hist.length}`);
+    }
+    
+    // 3. CALENDARIO PM
+    STATE.calendario = [];
+    STATE.calTotales = { planificado:0, realizado:0, pctOk:0, pctNo:0 };
+    if(wb.SheetNames.includes('CALENDARIO PM')){
+      const wsCal = wb.Sheets['CALENDARIO PM'];
+      const rowsCal = XLSX.utils.sheet_to_json(wsCal, {header:1, raw:false, defval:''});
+      
+      for(let r of rowsCal.slice(1)){
+        if(!r[0]) continue;
+        const mes = r[0].toString().trim().toUpperCase();
+        if(mes === 'TOTAL'){
+          STATE.calTotales.planificado = parseFloat(r[1]) || 0;
+          STATE.calTotales.realizado = parseFloat(r[2]) || 0;
+          STATE.calTotales.pctOk = parseFloat(r[3]) || 0;
+          STATE.calTotales.pctNo = parseFloat(r[4]) || 0;
+        } else {
+          STATE.calendario.push({
+            mes: mes,
+            planificado: parseFloat(r[1]) || 0,
+            realizado: parseFloat(r[2]) || 0,
+            pctOk: parseFloat(r[3]) || 0,
+            pctNo: parseFloat(r[4]) || 0
+          });
+        }
+      }
+      console.log(`✓ Calendario: ${STATE.calendario.length} meses`);
+    }
+    
+    // 4. CHECK1
+    STATE.checks = [];
+    if(wb.SheetNames.includes('CHECK1')){
+      const wsCheck = wb.Sheets['CHECK1'];
+      const rowsCheck = XLSX.utils.sheet_to_json(wsCheck, {raw:false, defval:''});
+      STATE.checks = rowsCheck.map(r => ({
+        fecha: parseFecha(r.FECHA),
+        equipo: (r['EQUIPO DE TRABAJO'] || '').toString().trim(),
+        operador: (r.OPERADOR || '').toString().trim(),
+        horometro: parseFloat(r['HORÓMETRO']) || 0,
+        observaciones: (r.OBSERVACIONES || '').toString().trim()
+      })).filter(c => c.equipo && c.fecha);
+      console.log(`✓ Checks: ${STATE.checks.length} registros`);
+    }
+    
+    // Actualizar UI
+    const totalPartes = STATE.partes.length;
+    const planifCount = STATE.planif.length;
+    const histCount = STATE.hist.length;
+    const mesesCount = STATE.calendario.length;
+    const checksCount = STATE.checks.length;
+    
+    const ahora = new Date();
+    const timestamp = ahora.toLocaleString('es-AR', {
+      day:'2-digit', month:'2-digit', year:'numeric',
+      hour:'2-digit', minute:'2-digit'
+    });
+    
+    statusEl.textContent = `✅ Actualizado ${timestamp} — ${totalPartes} partes · ${planifCount} PM · ${checksCount} checks`;
+    statusEl.style.color = 'var(--ok)';
+    
+    // Mostrar botón exportar
+    if(btnExportar) btnExportar.style.display = 'inline-block';
+    
+    // Llenar filtros y renderizar
+    llenarFiltrosDash();
+    llenarFiltrosPM();
+    llenarFiltrosCheck();
+    renderDash();
+    renderCalendario();
+    renderPlanificacion();
+    renderHistorial();
+    renderCheckDiario();
+    
+    toast('Datos actualizados', `${totalPartes} partes desde SharePoint`, 'ok');
+    console.log('✅ Auto-carga completada');
+    
+  } catch(err) {
+    console.error('❌ Error en auto-carga:', err);
+    statusEl.textContent = '❌ Error al cargar desde SharePoint';
+    statusEl.style.color = 'var(--err)';
+    toast('Error', 'No se pudo cargar desde SharePoint: ' + err.message, 'err');
+  }
+}
+
+// Auto-cargar SOLO si está en servidor web (no en archivo local)
+window.addEventListener('DOMContentLoaded', function(){
+  // Detectar si es archivo local o servidor
+  const esLocal = window.location.protocol === 'file:';
+  
+  if(esLocal){
+    console.log('📂 Modo local detectado - usa carga manual');
+    $id('upload-status').textContent = '📂 Archivo local — cargá Excel manualmente';
+  } else {
+    console.log('🌐 Modo servidor detectado - activando auto-carga');
+    setTimeout(cargarDesdeSharePoint, 1000);
+    
+    // Auto-actualizar cada X minutos
+    setInterval(function(){
+      console.log('🔄 Auto-actualización programada...');
+      cargarDesdeSharePoint();
+    }, AUTO_REFRESH_MINUTES * 60 * 1000);
+  }
+});
+
+function exportarReporte(){
+  if(!STATE.partes.length){alert('Cargá datos primero');return;}
+  var btn=document.getElementById('btn-exportar');
+  btn.textContent='⏳ Exportando...';
+  btn.disabled=true;
+  setTimeout(function(){
+    try{
+      var datos=JSON.stringify({
+        partes:STATE.partes.map(function(p){return{
+          fecha:p.fecha?p.fecha.toISOString():null,
+          equipo:p.equipo,operador:p.operador,finca:p.finca,lote:p.lote,
+          tarea:p.tarea||'',implementos:p.implementos||'',cuadro:p.cuadro||'',
+          horas:p.horas,horasParada:p.horasParada,litros:p.litros,
+          hsParte:p.hsParte,horoInicio:p.horoInicio,horoFinal:p.horoFinal,
+          huboParada:p.huboParada||''
+        };}),
+        planif:STATE.planif.map(function(p){return{
+          equipo:p.equipo,proxPM:p.proxPM,
+          fechaSugerida:p.fechaSugerida?p.fechaSugerida.toISOString():null,
+          hsFaltantes:p.hsFaltantes,diasFaltantes:p.diasFaltantes,estado:p.estado
+        };}),
+        hist:STATE.hist.map(function(h){return{
+          equipo:h.equipo,pmRealizado:h.pmRealizado,horas:h.horas,
+          fechaRealizado:h.fechaRealizado?h.fechaRealizado.toISOString():null,
+          sigPM:h.sigPM,
+          fechaPlanificada:h.fechaPlanificada?h.fechaPlanificada.toISOString():null,
+          observaciones:h.observaciones
+        };}),
+        calendario:STATE.calendario,
+        calTotales:STATE.calTotales
+      });
+      var html=document.documentElement.outerHTML;
+      var pos=html.indexOf('<script src="https://cdnjs');
+      var script='<'+'script>window.D='+datos+';window.addEventListener("DOMContentLoaded",function(){if(window.D&&!STATE.partes.length){setTimeout(function(){STATE.partes=window.D.partes.map(function(p){return{fecha:parseFecha(p.fecha),equipo:p.equipo,operador:p.operador,finca:p.finca,lote:p.lote,tarea:p.tarea,implementos:p.implementos,cuadro:p.cuadro,horas:p.horas,horasParada:p.horasParada,litros:p.litros,hsParte:p.hsParte,horoInicio:p.horoInicio,horoFinal:p.horoFinal,huboParada:p.huboParada};});STATE.planif=window.D.planif.map(function(p){return{equipo:p.equipo,proxPM:p.proxPM,fechaSugerida:parseFecha(p.fechaSugerida),hsFaltantes:p.hsFaltantes,diasFaltantes:p.diasFaltantes,estado:p.estado};});STATE.hist=window.D.hist.map(function(h){return{equipo:h.equipo,pmRealizado:h.pmRealizado,horas:h.horas,fechaRealizado:parseFecha(h.fechaRealizado),sigPM:h.sigPM,fechaPlanificada:parseFecha(h.fechaPlanificada),observaciones:h.observaciones};});STATE.calendario=window.D.calendario;STATE.calTotales=window.D.calTotales;llenarFiltrosDash();llenarFiltrosPM();renderDash();renderCalendario();renderPlanificacion();renderHistorial();$id("upload-status").textContent="📊 Reporte "+new Date().toLocaleDateString("es-AR")+" — "+STATE.partes.length+" partes";console.log("✅ Datos auto-cargados");},300);}});<'+'/script>\n';
+      html=html.slice(0,pos)+script+html.slice(pos);
+      html=html.replace('class="upload-bar"','class="upload-bar" style="display:none"');
+      html=html.replace('<title>LG360 · Gestión de Mantenimiento — Flota</title>','<title>LG360 · Reporte '+new Date().toLocaleDateString('es-AR')+'</title>');
+      var blob=new Blob([html],{type:'text/html'});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');
+      a.href=url;
+      a.download='LG360_Reporte_'+new Date().toISOString().slice(0,10)+'.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast('Exportado','Archivo descargado con '+STATE.partes.length+' partes','ok');
+      console.log('✅ Exportado con datos');
+    }catch(e){alert('Error: '+e.message);console.error(e);}
+    btn.textContent='💾 EXPORTAR';
+    btn.disabled=false;
+  },400);
+}
+
+</script>
+
+</body>
+</html>
